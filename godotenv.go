@@ -258,19 +258,18 @@ func parseLine(line string, envMap map[string]string) (key string, value string,
 		splitString = strings.SplitN(line, ":", 2)
 	}
 
-	if len(splitString) != 2 {
-		err = errors.New("Can't separate key from value")
-		return
-	}
-
 	// Parse the key
 	key = splitString[0]
 	if strings.HasPrefix(key, "export") {
 		key = strings.TrimPrefix(key, "export")
 	}
 	key = strings.TrimSpace(key)
-
 	key = exportRegex.ReplaceAllString(splitString[0], "$1")
+
+	if len(splitString) != 2 {
+		// no separator found. This is a python-dotenv style "None value"
+		splitString = []string{key, "${" + key + "}"}
+	}
 
 	// Parse the value
 	value = parseValue(splitString[1], envMap)
